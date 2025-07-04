@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Editor Web App</title>
+    <title>PDF Editor - Powered by Hono & Cloudflare</title>
     <style>
         * {
             margin: 0;
@@ -40,6 +40,16 @@
         .header p {
             font-size: 1.2rem;
             opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 10px 5px;
+            backdrop-filter: blur(10px);
         }
 
         .main-content {
@@ -181,13 +191,11 @@
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .info-box {
@@ -219,15 +227,15 @@
 
         .page-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
             margin: 20px 0;
         }
 
         .page-item {
             border: 2px solid #e9ecef;
             border-radius: 8px;
-            padding: 10px;
+            padding: 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -246,13 +254,14 @@
 
         .page-number {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
         }
 
         .rotation-controls {
             display: flex;
             justify-content: center;
-            gap: 5px;
+            gap: 8px;
             margin-top: 10px;
         }
 
@@ -260,14 +269,16 @@
             background: #6c757d;
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
         }
 
         .rotation-btn:hover {
             background: #5a6268;
+            transform: scale(1.1);
         }
 
         .download-link {
@@ -318,33 +329,84 @@
             color: #6c757d;
             margin-top: 5px;
         }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-indicator.show {
+            opacity: 1;
+        }
+
+        .status-indicator.success {
+            background: #28a745;
+        }
+
+        .status-indicator.error {
+            background: #dc3545;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📄 PDF Editor</h1>
-            <p>PDFページの抽出・回転が簡単にできるWebアプリ</p>
+            <p>Cloudflare Workers × Honoで動作する高速PDFエディタ</p>
+            <div>
+                <span class="badge">⚡ Edge Computing</span>
+                <span class="badge">🔒 Secure</span>
+                <span class="badge">🌍 Global</span>
+            </div>
         </div>
 
         <div class="main-content">
             <div class="tab-container">
                 <button class="tab active" onclick="switchTab('upload')">📁 アップロード</button>
-                <button class="tab" onclick="switchTab('extract')">✂️ ページ抽出</button>
-                <button class="tab" onclick="switchTab('rotate')">🔄 ページ回転</button>
+                <button class="tab" onclick="switchTab('extract')" id="extractTab" disabled>✂️ ページ抽出</button>
+                <button class="tab" onclick="switchTab('rotate')" id="rotateTab" disabled>🔄 ページ回転</button>
             </div>
 
             <!-- アップロードタブ -->
             <div id="upload-tab" class="tab-content active">
                 <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📎</div>
+                    <div class="upload-icon">☁️</div>
                     <h3>PDFファイルをアップロード</h3>
                     <p>ファイルをドラッグ&ドロップするか、クリックして選択してください</p>
                     <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                         ファイルを選択
                     </button>
                     <input type="file" id="fileInput" class="file-input" accept=".pdf" />
-                    <div class="help-text">最大ファイルサイズ: 50MB</div>
+                    <div class="help-text">最大ファイルサイズ: 50MB | Cloudflare R2に安全に保存</div>
+                </div>
+
+                <div class="progress-bar" id="uploadProgress" style="display: none;">
+                    <div class="progress-fill" id="uploadProgressFill"></div>
                 </div>
 
                 <div id="uploadResult"></div>
@@ -354,6 +416,7 @@
             <div id="extract-tab" class="tab-content">
                 <div class="info-box">
                     <strong>ページ抽出:</strong> 必要なページだけを新しいPDFとして保存できます
+                    <br><small>🚀 Cloudflare Workers上で高速処理</small>
                 </div>
 
                 <div class="form-group">
@@ -365,7 +428,7 @@
                     </div>
                 </div>
 
-                <button class="btn" onclick="extractPages()">ページを抽出</button>
+                <button class="btn" onclick="extractPages()" id="extractBtn" disabled>ページを抽出</button>
 
                 <div class="loading" id="extractLoading">
                     <div class="spinner"></div>
@@ -379,228 +442,4 @@
             <div id="rotate-tab" class="tab-content">
                 <div class="info-box">
                     <strong>ページ回転:</strong> 個別のページを90度、180度、270度回転できます
-                </div>
-
-                <div id="pagePreview"></div>
-
-                <button class="btn" onclick="applyRotations()">回転を適用</button>
-
-                <div class="loading" id="rotateLoading">
-                    <div class="spinner"></div>
-                    <p>ページを回転中...</p>
-                </div>
-
-                <div id="rotateResult"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let currentFile = null;
-        let pageCount = 0;
-        let rotations = {};
-
-        // タブ切り替え
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            document.querySelector(`.tab:nth-child(${tabName === 'upload' ? 1 : tabName === 'extract' ? 2 : 3})`).classList.add('active');
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-        }
-
-        // ドラッグ&ドロップ
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileUpload(files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileUpload(e.target.files[0]);
-            }
-        });
-
-        // ファイルアップロード処理
-        async function handleFileUpload(file) {
-            if (file.type !== 'application/pdf') {
-                showMessage('error', 'PDFファイルを選択してください');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('pdfFile', file);
-
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    currentFile = result.filename;
-                    pageCount = result.pageCount;
-
-                    document.getElementById('uploadResult').innerHTML = `
-                        <div class="success-box">
-                            <strong>アップロード成功!</strong><br>
-                            ファイル名: ${result.filename}<br>
-                            総ページ数: ${result.pageCount}
-                        </div>
-                    `;
-
-                    generatePagePreview();
-                } else {
-                    showMessage('error', result.error);
-                }
-            } catch (error) {
-                showMessage('error', 'アップロードに失敗しました');
-            }
-        }
-
-        // ページプレビュー生成
-        function generatePagePreview() {
-            const preview = document.getElementById('pagePreview');
-            if (!preview) return;
-
-            let html = '<div class="page-grid">';
-            for (let i = 1; i <= pageCount; i++) {
-                html += `
-                    <div class="page-item" id="page-${i}">
-                        <div class="page-number">Page ${i}</div>
-                        <div class="rotation-controls">
-                            <button class="rotation-btn" onclick="rotatePage(${i}, 90)">↻</button>
-                            <button class="rotation-btn" onclick="rotatePage(${i}, 180)">↕</button>
-                            <button class="rotation-btn" onclick="rotatePage(${i}, 270)">↺</button>
-                        </div>
-                        <div id="rotation-${i}" style="font-size: 0.8rem; margin-top: 5px;">0°</div>
-                    </div>
-                `;
-            }
-            html += '</div>';
-            preview.innerHTML = html;
-        }
-
-        // ページ回転
-        function rotatePage(pageNum, angle) {
-            rotations[pageNum] = angle;
-            document.getElementById(`rotation-${pageNum}`).textContent = `${angle}°`;
-            document.getElementById(`page-${pageNum}`).style.background = '#e7f3ff';
-        }
-
-        // ページ抽出
-        async function extractPages() {
-            if (!currentFile) {
-                showMessage('error', 'まずPDFファイルをアップロードしてください');
-                return;
-            }
-
-            const pages = document.getElementById('extractPages').value.trim();
-            if (!pages) {
-                showMessage('error', '抽出するページ番号を入力してください');
-                return;
-            }
-
-            document.getElementById('extractLoading').classList.add('show');
-
-            try {
-                const response = await fetch('/extract', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: currentFile, pages })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    document.getElementById('extractResult').innerHTML = `
-                        <div class="success-box">
-                            <strong>抽出完了!</strong><br>
-                            ${result.message}
-                            <br>
-                            <a href="${result.downloadUrl}" class="download-link" download>
-                                📥 ダウンロード
-                            </a>
-                        </div>
-                    `;
-                } else {
-                    showMessage('error', result.error);
-                }
-            } catch (error) {
-                showMessage('error', 'ページ抽出に失敗しました');
-            } finally {
-                document.getElementById('extractLoading').classList.remove('show');
-            }
-        }
-
-        // 回転適用
-        async function applyRotations() {
-            if (!currentFile) {
-                showMessage('error', 'まずPDFファイルをアップロードしてください');
-                return;
-            }
-
-            if (Object.keys(rotations).length === 0) {
-                showMessage('error', '回転するページを選択してください');
-                return;
-            }
-
-            document.getElementById('rotateLoading').classList.add('show');
-
-            try {
-                const response = await fetch('/rotate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: currentFile, rotations })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    document.getElementById('rotateResult').innerHTML = `
-                        <div class="success-box">
-                            <strong>回転完了!</strong><br>
-                            ${result.message}
-                            <br>
-                            <a href="${result.downloadUrl}" class="download-link" download>
-                                📥 ダウンロード
-                            </a>
-                        </div>
-                    `;
-                } else {
-                    showMessage('error', result.error);
-                }
-            } catch (error) {
-                showMessage('error', 'ページ回転に失敗しました');
-            } finally {
-                document.getElementById('rotateLoading').classList.remove('show');
-            }
-        }
-
-        // メッセージ表示
-        function showMessage(type, message) {
-            const className = type === 'error' ? 'error-box' : 'success-box';
-            const element = document.getElementById('uploadResult');
-            element.innerHTML = `<div class="${className}">${message}</div>`;
-        }
-    </script>
-</body>
-</html>
+                    <br><small>⚡ エッジで瞬時に処理</small>

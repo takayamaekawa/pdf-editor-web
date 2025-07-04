@@ -1,0 +1,24 @@
+name = "hono-pdf-editor"
+main = "src/index.ts"
+compatibility_date = "2023-12-18"
+
+[env.production]
+name = "hono-pdf-editor-prod"
+
+[env.staging]
+name = "hono-pdf-editor-staging"
+
+# R2バケット設定（ファイル保存用）
+[[r2_buckets]]
+bucket_name = "pdf-editor-files"
+binding = "pdf_editor_files"
+
+# KVストレージ設定（実際のIDに置き換えてください）
+[[kv_namespaces]]
+binding = "PDF_METADATA"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxx"
+preview_id = "xxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# バインディング設定
+[vars]
+ENVIRONMENT = "development"
