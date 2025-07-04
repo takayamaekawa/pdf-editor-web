@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ファイル選択テスト</title>
+    <style>
+        .file-input { display: none; }
+        .upload-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ファイル選択テスト</h1>
+    
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+        📎 ファイルを選択
+    </button>
+    <input type="file" id="fileInput" class="file-input" accept=".pdf" />
+    
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                alert('ファイルが選択されました: ' + e.target.files[0].name);
+            }
+        });
+    </script>
+</body>
+</html>
