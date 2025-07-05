@@ -25,8 +25,8 @@ app.use(
 );
 
 // 静的ファイル配信（フロントエンド）
-app.get('/', (c) => {
-  return c.html(`
+app.get("/", (c) => {
+	return c.html(`
     <!DOCTYPE html>
     <html lang="ja">
     <head>
@@ -34,6 +34,11 @@ app.get('/', (c) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>PDF Editor Pro - Cloudflare Edition</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2877828132102103"
+          crossorigin="anonymous"
+        ></script>
         <style>
             * {
                 margin: 0;
@@ -596,14 +601,14 @@ app.get('/', (c) => {
             <div class="main-content">
                 <div class="tab-container">
                     <button class="tab active" onclick="switchTab('upload')">📁 アップロード</button>
-                    <button class="tab" onclick="switchTab('extract')" id="extractTab" disabled>✂️ ページ抽出</button>
+                    <button class="tab" onclick="switchTab('extract')" id="extractTab" disabled>✂ ページ抽出</button>
                     <button class="tab" onclick="switchTab('rotate')" id="rotateTab" disabled>🔄 ページ回転</button>
                 </div>
 
                 <!-- アップロードタブ -->
                 <div id="upload-tab" class="tab-content active">
                     <div class="upload-area" id="uploadArea">
-                        <div class="upload-icon">☁️</div>
+                        <div class="upload-icon">☁</div>
                         <h3>PDFファイルをアップロード</h3>
                         <p>ファイルをドラッグ&ドロップするか、クリックして選択してください</p>
                         <button class="upload-btn" onclick="openFileDialog()">
@@ -643,7 +648,7 @@ app.get('/', (c) => {
                     </div>
 
                     <button class="btn" onclick="extractPages()" id="extractBtn" disabled>
-                        ✂️ ページを抽出
+                        ✂ ページを抽出
                     </button>
 
                     <div class="loading" id="extractLoading">
@@ -722,19 +727,19 @@ app.get('/', (c) => {
                 try {
                     const page = await pdfDoc.getPage(pageNumber);
                     const viewport = page.getViewport({ scale: 0.3 });
-                    
+
                     const canvas = document.getElementById(canvasId);
                     if (!canvas) return;
-                    
+
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
-                    
+
                     const renderContext = {
                         canvasContext: context,
                         viewport: viewport
                     };
-                    
+
                     await page.render(renderContext).promise;
                 } catch (error) {
                     console.error('Thumbnail generation failed:', error);
@@ -838,7 +843,7 @@ app.get('/', (c) => {
                         currentUploadId = result.uploadId;
                         pageCount = result.pageCount;
 
-                        document.getElementById('uploadResult').innerHTML = 
+                        document.getElementById('uploadResult').innerHTML =
                             '<div class="success-box">' +
                                 '<strong>🎉 アップロード成功!</strong><br>' +
                                 '<strong>ファイル名:</strong> ' + result.filename + '<br>' +
@@ -997,7 +1002,7 @@ app.get('/', (c) => {
 
                 if (pageNum && currentPdfDoc) {
                     const rotation = rotations[pageNum] || 0;
-                    viewer.innerHTML = 
+                    viewer.innerHTML =
                         '<div style="text-align: center;">' +
                             '<canvas id="main-canvas" style="max-width: 100%; max-height: 400px; border: 2px solid #dee2e6; border-radius: 12px; transform: rotate(' + rotation + 'deg); transition: transform 0.3s ease;"></canvas>' +
                             '<h3 style="color: #495057; margin: 20px 0 10px;">Page ' + pageNum + '</h3>' +
@@ -1009,11 +1014,11 @@ app.get('/', (c) => {
                                 '</small>' +
                             '</div>' +
                         '</div>';
-                    
+
                     // メインキャンバスにページを描画
                     await generateMainPagePreview(currentPdfDoc, pageNum, 'main-canvas');
                 } else {
-                    viewer.innerHTML = 
+                    viewer.innerHTML =
                         '<div style="text-align: center; color: #6c757d;">' +
                             '<div style="font-size: 3rem; margin-bottom: 15px;">📄</div>' +
                             '<p>ページを選択するとプレビューが表示されます</p>' +
@@ -1026,19 +1031,19 @@ app.get('/', (c) => {
                 try {
                     const page = await pdfDoc.getPage(pageNumber);
                     const viewport = page.getViewport({ scale: 1.5 });
-                    
+
                     const canvas = document.getElementById(canvasId);
                     if (!canvas) return;
-                    
+
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
-                    
+
                     const renderContext = {
                         canvasContext: context,
                         viewport: viewport
                     };
-                    
+
                     await page.render(renderContext).promise;
                 } catch (error) {
                     console.error('Main preview generation failed:', error);
@@ -1070,7 +1075,7 @@ app.get('/', (c) => {
                     const result = await response.json();
 
                     if (result.success) {
-                        document.getElementById('extractResult').innerHTML = 
+                        document.getElementById('extractResult').innerHTML =
                             '<div class="success-box">' +
                                 '<strong>🎉 抽出完了!</strong><br>' +
                                 result.message + '<br>' +
@@ -1080,7 +1085,7 @@ app.get('/', (c) => {
                                     '📥 ダウンロード' +
                                 '</a>' +
                             '</div>';
-                        showStatusIndicator('success', '✂️ ページ抽出完了!');
+                        showStatusIndicator('success', '✂ ページ抽出完了!');
                     } else {
                         showMessage('error', result.error);
                     }
@@ -1115,7 +1120,7 @@ app.get('/', (c) => {
                     const result = await response.json();
 
                     if (result.success) {
-                        document.getElementById('rotateResult').innerHTML = 
+                        document.getElementById('rotateResult').innerHTML =
                             '<div class="success-box">' +
                                 '<strong>🎉 回転完了!</strong><br>' +
                                 result.message + '<br>' +
@@ -1184,31 +1189,31 @@ app.get('/', (c) => {
 });
 
 // ヘルスチェック
-app.get('/health', (c) => {
+app.get("/health", (c) => {
 	return c.json({
-		status: 'OK',
+		status: "OK",
 		timestamp: new Date().toISOString(),
-		worker: 'Hono PDF Editor'
+		worker: "Hono PDF Editor",
 	});
 });
 
 // ファイルアップロード
-app.post('/upload', async (c) => {
+app.post("/upload", async (c) => {
 	try {
 		const formData = await c.req.formData();
-		const file = formData.get('pdfFile') as File;
+		const file = formData.get("pdfFile") as File;
 
 		if (!file) {
-			return c.json({ error: 'ファイルがアップロードされていません' }, 400);
+			return c.json({ error: "ファイルがアップロードされていません" }, 400);
 		}
 
-		if (file.type !== 'application/pdf') {
-			return c.json({ error: 'PDFファイルのみアップロード可能です' }, 400);
+		if (file.type !== "application/pdf") {
+			return c.json({ error: "PDFファイルのみアップロード可能です" }, 400);
 		}
 
 		// ファイルサイズチェック（50MB）
 		if (file.size > 50 * 1024 * 1024) {
-			return c.json({ error: 'ファイルサイズが大きすぎます（最大50MB）' }, 400);
+			return c.json({ error: "ファイルサイズが大きすぎます（最大50MB）" }, 400);
 		}
 
 		const fileBuffer = await file.arrayBuffer();
@@ -1220,14 +1225,14 @@ app.post('/upload', async (c) => {
 			const pdfDoc = await PDFDocument.load(fileBuffer);
 			pageCount = pdfDoc.getPageCount();
 		} catch (error) {
-			return c.json({ error: '無効なPDFファイルです' }, 400);
+			return c.json({ error: "無効なPDFファイルです" }, 400);
 		}
 
 		// R2にファイル保存
 		const bucket = c.env.pdf_editor_files;
 		await bucket.put(`uploads/${uploadId}.pdf`, fileBuffer, {
 			httpMetadata: {
-				contentType: 'application/pdf',
+				contentType: "application/pdf",
 			},
 			customMetadata: {
 				originalName: file.name,
@@ -1255,20 +1260,19 @@ app.post('/upload', async (c) => {
 			pageCount,
 			message: `PDFが正常にアップロードされました。総ページ数: ${pageCount}`,
 		});
-
 	} catch (error) {
-		console.error('Upload error:', error);
-		return c.json({ error: 'ファイルの処理中にエラーが発生しました' }, 500);
+		console.error("Upload error:", error);
+		return c.json({ error: "ファイルの処理中にエラーが発生しました" }, 500);
 	}
 });
 
 // ページ抽出
-app.post('/extract', async (c) => {
+app.post("/extract", async (c) => {
 	try {
 		const { uploadId, pages } = await c.req.json();
 
 		if (!uploadId || !pages) {
-			return c.json({ error: 'アップロードIDとページ番号が必要です' }, 400);
+			return c.json({ error: "アップロードIDとページ番号が必要です" }, 400);
 		}
 
 		// R2からファイル取得
@@ -1276,7 +1280,7 @@ app.post('/extract', async (c) => {
 		const object = await bucket.get(`uploads/${uploadId}.pdf`);
 
 		if (!object) {
-			return c.json({ error: 'ファイルが見つかりません' }, 404);
+			return c.json({ error: "ファイルが見つかりません" }, 404);
 		}
 
 		const pdfBytes = await object.arrayBuffer();
@@ -1287,7 +1291,7 @@ app.post('/extract', async (c) => {
 		const pageNumbers = parsePageNumbers(pages, totalPages);
 
 		if (pageNumbers.length === 0) {
-			return c.json({ error: '有効なページ番号を指定してください' }, 400);
+			return c.json({ error: "有効なページ番号を指定してください" }, 400);
 		}
 
 		// 新しいPDFを作成
@@ -1304,12 +1308,12 @@ app.post('/extract', async (c) => {
 		// 抽出結果をR2に保存
 		await bucket.put(`outputs/${outputId}.pdf`, newPdfBytes, {
 			httpMetadata: {
-				contentType: 'application/pdf',
+				contentType: "application/pdf",
 			},
 			customMetadata: {
-				type: 'extracted',
+				type: "extracted",
 				originalUploadId: uploadId,
-				extractedPages: pageNumbers.join(','),
+				extractedPages: pageNumbers.join(","),
 				createdTime: new Date().toISOString(),
 			},
 		});
@@ -1321,20 +1325,19 @@ app.post('/extract', async (c) => {
 			message: `${pageNumbers.length}ページが抽出されました`,
 			extractedPages: pageNumbers,
 		});
-
 	} catch (error) {
-		console.error('Extract error:', error);
-		return c.json({ error: 'ページ抽出中にエラーが発生しました' }, 500);
+		console.error("Extract error:", error);
+		return c.json({ error: "ページ抽出中にエラーが発生しました" }, 500);
 	}
 });
 
 // ページ回転
-app.post('/rotate', async (c) => {
+app.post("/rotate", async (c) => {
 	try {
 		const { uploadId, rotations } = await c.req.json();
 
 		if (!uploadId || !rotations) {
-			return c.json({ error: 'アップロードIDと回転情報が必要です' }, 400);
+			return c.json({ error: "アップロードIDと回転情報が必要です" }, 400);
 		}
 
 		// R2からファイル取得
@@ -1342,7 +1345,7 @@ app.post('/rotate', async (c) => {
 		const object = await bucket.get(`uploads/${uploadId}.pdf`);
 
 		if (!object) {
-			return c.json({ error: 'ファイルが見つかりません' }, 404);
+			return c.json({ error: "ファイルが見つかりません" }, 404);
 		}
 
 		const pdfBytes = await object.arrayBuffer();
@@ -1352,7 +1355,7 @@ app.post('/rotate', async (c) => {
 		// 回転適用
 		for (const [pageNum, rotation] of Object.entries(rotations)) {
 			const pageIndex = parseInt(pageNum) - 1;
-			if (pages[pageIndex] && typeof rotation === 'number') {
+			if (pages[pageIndex] && typeof rotation === "number") {
 				pages[pageIndex].setRotation(degrees(rotation));
 			}
 		}
@@ -1363,10 +1366,10 @@ app.post('/rotate', async (c) => {
 		// 回転結果をR2に保存
 		await bucket.put(`outputs/${outputId}.pdf`, newPdfBytes, {
 			httpMetadata: {
-				contentType: 'application/pdf',
+				contentType: "application/pdf",
 			},
 			customMetadata: {
-				type: 'rotated',
+				type: "rotated",
 				originalUploadId: uploadId,
 				rotations: JSON.stringify(rotations),
 				createdTime: new Date().toISOString(),
@@ -1377,50 +1380,51 @@ app.post('/rotate', async (c) => {
 			success: true,
 			outputId,
 			downloadUrl: `/download/${outputId}`,
-			message: 'ページの回転が完了しました',
+			message: "ページの回転が完了しました",
 			appliedRotations: rotations,
 		});
-
 	} catch (error) {
-		console.error('Rotate error:', error);
-		return c.json({ error: 'ページ回転中にエラーが発生しました' }, 500);
+		console.error("Rotate error:", error);
+		return c.json({ error: "ページ回転中にエラーが発生しました" }, 500);
 	}
 });
 
 // ファイルダウンロード
-app.get('/download/:outputId', async (c) => {
+app.get("/download/:outputId", async (c) => {
 	try {
-		const outputId = c.req.param('outputId');
+		const outputId = c.req.param("outputId");
 		const bucket = c.env.pdf_editor_files;
 
 		const object = await bucket.get(`outputs/${outputId}.pdf`);
 
 		if (!object) {
-			return c.json({ error: 'ファイルが見つかりません' }, 404);
+			return c.json({ error: "ファイルが見つかりません" }, 404);
 		}
 
 		const headers = new Headers();
-		headers.set('Content-Type', 'application/pdf');
-		headers.set('Content-Disposition', `attachment; filename="processed_${outputId}.pdf"`);
-		headers.set('Cache-Control', 'public, max-age=3600');
+		headers.set("Content-Type", "application/pdf");
+		headers.set(
+			"Content-Disposition",
+			`attachment; filename="processed_${outputId}.pdf"`,
+		);
+		headers.set("Cache-Control", "public, max-age=3600");
 
 		return new Response(object.body, { headers });
-
 	} catch (error) {
-		console.error('Download error:', error);
-		return c.json({ error: 'ダウンロード中にエラーが発生しました' }, 500);
+		console.error("Download error:", error);
+		return c.json({ error: "ダウンロード中にエラーが発生しました" }, 500);
 	}
 });
 
 // アップロードされたファイル一覧
-app.get('/files', async (c) => {
+app.get("/files", async (c) => {
 	try {
 		const bucket = c.env.pdf_editor_files;
-		const objects = await bucket.list({ prefix: 'uploads/' });
+		const objects = await bucket.list({ prefix: "uploads/" });
 
 		const files = await Promise.all(
 			objects.objects.map(async (obj) => {
-				const uploadId = obj.key.replace('uploads/', '').replace('.pdf', '');
+				const uploadId = obj.key.replace("uploads/", "").replace(".pdf", "");
 				const metadata = await c.env.PDF_METADATA.get(uploadId);
 
 				return {
@@ -1430,21 +1434,20 @@ app.get('/files', async (c) => {
 					uploaded: obj.uploaded,
 					metadata: metadata ? JSON.parse(metadata) : null,
 				};
-			})
+			}),
 		);
 
 		return c.json({ files });
-
 	} catch (error) {
-		console.error('Files list error:', error);
-		return c.json({ error: 'ファイル一覧の取得に失敗しました' }, 500);
+		console.error("Files list error:", error);
+		return c.json({ error: "ファイル一覧の取得に失敗しました" }, 500);
 	}
 });
 
 // ファイル削除
-app.delete('/file/:uploadId', async (c) => {
+app.delete("/file/:uploadId", async (c) => {
 	try {
-		const uploadId = c.req.param('uploadId');
+		const uploadId = c.req.param("uploadId");
 		const bucket = c.env.pdf_editor_files;
 
 		// アップロードファイルを削除
@@ -1454,7 +1457,7 @@ app.delete('/file/:uploadId', async (c) => {
 		await c.env.PDF_METADATA.delete(uploadId);
 
 		// 関連する出力ファイルも削除
-		const outputs = await bucket.list({ prefix: 'outputs/' });
+		const outputs = await bucket.list({ prefix: "outputs/" });
 		for (const obj of outputs.objects) {
 			if (obj.customMetadata?.originalUploadId === uploadId) {
 				await bucket.delete(obj.key);
@@ -1463,12 +1466,11 @@ app.delete('/file/:uploadId', async (c) => {
 
 		return c.json({
 			success: true,
-			message: 'ファイルが削除されました'
+			message: "ファイルが削除されました",
 		});
-
 	} catch (error) {
-		console.error('Delete error:', error);
-		return c.json({ error: 'ファイル削除に失敗しました' }, 500);
+		console.error("Delete error:", error);
+		return c.json({ error: "ファイル削除に失敗しました" }, 500);
 	}
 });
 
@@ -1479,14 +1481,14 @@ function generateUploadId(): string {
 
 function parsePageNumbers(pagesString: string, totalPages: number): number[] {
 	const pages: number[] = [];
-	const parts = pagesString.split(',');
+	const parts = pagesString.split(",");
 
 	for (const part of parts) {
 		const trimmed = part.trim();
 
-		if (trimmed.indexOf('-') !== -1) {
+		if (trimmed.indexOf("-") !== -1) {
 			// 範囲指定 (例: "5-7")
-			const [start, end] = trimmed.split('-').map(n => parseInt(n.trim()));
+			const [start, end] = trimmed.split("-").map((n) => parseInt(n.trim()));
 			if (!isNaN(start) && !isNaN(end)) {
 				for (let i = start; i <= Math.min(end, totalPages); i++) {
 					if (i >= 1) pages.push(i);
