@@ -229,7 +229,7 @@ type Variables = {
 
 ## 📄 ライセンス
 
-MIT License
+[MIT License](LICENSE)
 
 ## 🔗 関連リンク
 
